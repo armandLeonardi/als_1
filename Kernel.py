@@ -25,7 +25,7 @@ class Kernel:
     def format_message(self, code, message, end="\n"):
         return "{time} | {code} | {message}".format(time=self.now(), code=code, message=message)
 
-    def read_json(self, path):
+    def load_json(self, path):
 
         content = ""
         if ".json" in path:
@@ -36,4 +36,10 @@ class Kernel:
 
         return content
 
+    def write_json(self, file_name, content):
+        if ".json" in file_name:
+            with open(file_name, "w", encoding=self.encoding) as f:
+                json.dump(content, f)
+        else:
+            raise Exception("Given path is not a json file")
     

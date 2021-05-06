@@ -1,15 +1,17 @@
 import numpy as np
 from time import time
 import hashlib
+from Kernel import Kernel
 
 # reversible cellular automata
-class CaR:
+class CaR(Kernel):
 
-    def __init__(self, verbose = True):
+    def __init__(self, rules_path="", verbose = False, debug=False):
+        super(CaR, self).__init__(verbose=verbose, debug=debug, heritate_class=self.__class__.__name__)
         self.__version__ = "1.0.0"
-        self.verbose = verbose
         self.X = []
         self.Y = []
+        self.rules_path = rules_path
         self.rules = {}
         self.nb_rules = 65536 # default total number of rules
         self.q = -1
@@ -19,13 +21,15 @@ class CaR:
         n = len(self.X)
         return (self.X[k], self.Y[k - 1], self.Y[k], self.Y[(k + 1) % n])
 
+    def format_key(self, key_tpl):
+        return "".join(str(e) for e in key_tpl)
+
     def apply_rule(self, k):
 
         key = self.get_values(k)
-        new_value = self.rules[self.q][key]
+        new_value = self.rules[self.q][self.format_key(key)]
 
         return new_value
-
 
     def gen_random_vector(self, n):
         np.random.seed(self.T)
@@ -47,15 +51,21 @@ class CaR:
         self.X = X
         self.get_random_steps()
         self.get_random_rule()
+        self.set_rules()
+
         M = self._run()
 
         return M
 
-    def _run(self):
-
+    def set_rules(self):
         if self.rules == {}:
-            self.gen_rules()
+            if self.rules_path == "":
+                self.gen_rules()
+            else:
+                self.rules = self.load_json(self.rules_path)
 
+    def _run(self):
+        
         nX = len(self.X)
         self.Y = self.gen_random_vector(nX)
         nY = len(self.Y)
@@ -91,15 +101,14 @@ class CaR:
                 for l in A:
                     for c in A:
                         for r in A:
-                            rule[(a, l, c, r)] = outputs[j]
+                            rule["{a}{l}{c}{r}".format(a=a, l=l, c=c, r=r)] = outputs[j]
                             j += 1
             rules.append(rule)
 
         self.rules = rules
 
 
-
-car = CaR()
+car = CaR(r"C:\Users\GDognin\DATA\Informatique\alpha_lambda_software\ca_cryptor\als_1\rules.json")
 
 X = np.random.choice(a=[0, 1], size= 25, p = [1 - 0.52, 0.52])
 
